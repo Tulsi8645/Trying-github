@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blog Details</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding-bottom: 40px; /* Ensure there's space at the bottom for the footer */
+      background-color: #f9f9f9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    #blogDetails {
+      width: 100%;
+      margin: auto;
+      padding: 20px;
+      overflow-y: scroll;
+    }
+
+    .blog-details {
+      position: relative;
+      width: 100%;
+      max-width: 800px;
+      margin: auto;
+      overflow: scroll;
+    }
+
+    .blog-details-image {
+      width: 100%;
+      height: 400px; /* Set a fixed height for the image container */
+      overflow: hidden; /* Hide overflow to maintain the cover effect */
+    }
+
+    .blog-details-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover; /* Cover the entire area of the container */
+      display: block; /* Remove default inline space below image */
+    }
+
+    .blog-details-info {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px;
+      background: #fff; /* White background for readability */
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+    }
+
+    .blog-details-info h2 {
+      margin: 0;
+      display: flex;
+      align-items: center; /* Align items vertically */
+    }
+
+    .blog-description {
+      padding: 10px;
+      background: #fff; /* White background for readability */
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+    }
+
+    .footer {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      text-align: center;
+      background-color: #f1f1f1;
+      padding: 2px;
+      box-shadow: 0 -1px 5px rgba(0, 0, 0, 0.1);
+      height: 40px;
+    }
+
+    .footer a {
+      text-decoration: none;
+      color: rgb(21, 49, 206);
+    }
+
+    .pen-icon{
+      margin-left: 10px;
+      color: #007bff; /* Customize color as needed */
+      cursor: pointer; /* Change cursor to pointer for clickable icon */
+    }
+
+    .blog-description h1 {
+      justify-content: center;
+      text-align: center; /* Center-align text within the paragraph */
+    }
+  </style>
+</head>
+ <body>
+  <section id="blogDetails" class="container">
+    <!-- Blog details will be injected here -->
+  </section>
+  <div class="footer">
+    <p><a href="/">Back to Home</a></p>
+  </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // Function to get query parameters from the URL
+      function getQueryParam(name) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(name);
+      }
+
+      // Get the blog ID from the query parameter
+      const blogId = getQueryParam('blogId');
+
+      // Define static blog data
+      const blogs = {
+        '1': {
+          image: 'assets/img/blog/img5.jpg',
+          title: 'Top 10 Mountains to Look at: Exclusive Rating by Mountaineer Travel Experts',
+          author: 'Rupesh',
+          details: 'Discover the world\'s most breathtaking mountains with our exclusive rating by top mountaineer travel experts...'
+        },
+        '2': {
+          image: 'assets/img/blog/img10.jpg',
+          title: 'How to Plan Your Vacation in Advance and Why It’s Beneficial',
+          author: 'Heera',
+          details: 'Planning your vacation in advance has numerous benefits, including saving money, getting the best deals...'
+        },
+        '3': {
+          image: 'assets/img/blog/img11.jpg',
+          title: 'Your Personal Guide to 5 Best Places to Visit on Earth',
+          author: 'Sujeet',
+          details: 'Explore the five best places on Earth that you must visit at least once in your lifetime...'
+        }
+      };
+
+      // Check if blogId is available and valid
+      if (blogId && blogs[blogId]) {
+        const blog = blogs[blogId];
+        const blogDetails = `
+          <div class="blog-details">
+            <div class="blog-details-image">
+              <img src="${blog.image}" alt="${blog.title}" />
+            </div>
+            <div class="blog-details-info">
+              <h2>${blog.title}</h2>
+              <span>by ${blog.author}</span>
+            </div>
+            <div class="blog-description">
+              <p>${blog.details}</p>
+            </div>
+          </div>`;
+        document.getElementById('blogDetails').innerHTML = blogDetails;
+      } else {
+        document.getElementById('blogDetails').innerHTML = '<p>No blog details available.</p>';
+      }
+    });
+  </script>
+</body>
+</html>

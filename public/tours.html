@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add/Edit Tour</title>
+  <link rel="stylesheet" href="https://cdn.quilljs.com/1.3.6/quill.snow.css">
+        <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      padding-bottom: 60px; /* Ensure there's space at the bottom for the footer */
+    }
+
+    .container {
+      width: 80%;
+      margin: auto;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 8px;
+      box-sizing: border-box;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .footer {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      text-align: center;
+      background-color: #f1f1f1;
+      padding: 10px;
+      box-shadow: 0 -1px 5px rgba(0,0,0,0.1);
+      height: 30px;
+      line-height: 10px;
+    }
+
+    .footer a {
+      text-decoration: none;
+      color: rgb(21, 49, 206);
+    }
+
+    .image-preview {
+      margin-top: 10px;
+      max-width: 200px;
+      height: auto;
+    }
+
+    .action-buttons {
+      margin-top: 20px;
+    }
+
+    .delete-button {
+      background-color: #dc3545;
+    }
+
+    .delete-button:hover {
+      background-color: #c82333;
+    }
+
+    /* Quill Editor Styles */
+    .quill-container {
+      height: 200px;
+    }
+     </style>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1 id="formTitle">Add New Tour</h1>
+    <form id="tourForm" enctype="multipart/form-data">
+      <input type="hidden" id="tourId" name="id" />
+      <input type="hidden" id="existingImage" name="existingImage" />
+      <div class="form-group">
+        <label for="image">Image File:</label>
+        <input type="file" name="image" id="imageInput">
+      </div>
+      <div class="form-group">
+        <img id="imagePreview" class="image-preview" src="" alt="Image Preview" />
+      </div>
+      <div class="form-group">
+        <label for="name">Tour Name:</label>
+        <input type="text" name="name" required>
+      </div>
+      <div class="form-group">
+        <label for="price">Price:</label>
+        <input type="number" name="price" required>
+      </div>
+      <div class="form-group">
+        <label for="price">Duration:</label>
+        <input type="text" name="duration" required>
+      </div>
+      <div class="form-group">
+        <label for="details">Tour Details:</label>
+        <div id="quill-editor" class="quill-container"></div>
+      </div>
+      <div class="action-buttons">
+        <button type="submit" id="submitButton">Add Tour</button>
+        <button type="button" id="deleteButton" class="delete-button" style="display: none;">Delete Tour</button>
+      </div>
+    </form>
+  </div>
+  <div class="footer">
+    <p><a href="/">Back to Home</a></p>
+  </div>
+  <script>
+  $(document).ready(function () {
+    const quill = new Quill('#quill-editor', {
+      theme: 'snow',
+      modules: {
+        toolbar: [
+          [{ header: [1, 2, false] }],
+          ['bold', 'italic', 'underline'],
+          [{ list: 'ordered'}, { list: 'bullet' }],
+          ['link'],
+          [{ 'align': [] }]
+        ]
+      }
+    });
+
+    function getQueryParam(name) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(name);
+    }
+
+    $('#tourForm').on('submit', function (e) {
+      e.preventDefault();
+
+      const formData = new FormData(this);
+      formData.set('details', quill.root.innerHTML); // Get HTML content from Quill
+
+      const fileInput = $('#imageInput')[0];
+      if (fileInput.files.length === 0) {
+        // Add existing image URL if no new file is selected
+        formData.append('image', $('#existingImage').val());
+      }
+
+      const tourId = $('#tourId').val();
+      console.log('Submitting form with ID:', tourId);
+      console.log('Form Data:', [...formData.entries()]);
+
+      $.ajax({
+        type: tourId ? 'PUT' : 'POST',
+        url: tourId ? `/api/edit-tour/${tourId}` : '/api/add-tour',
+        data: formData,
+        contentType: false,
+        processData: false,
+        success: function (response) {
+          console.log('Response:', response); // Added log for response
+          alert(response.message);
+          $('#tourForm')[0].reset();
+          $('#imagePreview').attr('src', '');
+          $('#existingImage').val('');
+          window.location.href = '/';
+        },
+        error: function (err) {
+          console.error('Error saving tour:', err);
+          alert('Error saving tour');
+        }
+      });
+    });
+
+    $('#imageInput').on('change', function (e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (event) {
+          $('#imagePreview').attr('src', event.target.result);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        $('#imagePreview').attr('src', $('#existingImage').val());
+      }
+    });
+
+    const tourId = getQueryParam('id');
+    console.log('Tour ID from URL:', tourId);
+
+    if (tourId) {
+      $('#formTitle').text('Edit Tour');
+      $('#submitButton').text('Update Tour');
+      $('#deleteButton').show();
+
+      $.ajax({
+        type: 'GET',
+        url: `/api/get-tour/${tourId}`,
+        success: function (response) {
+          if (response.success) {
+            const tour = response.tour;
+            $('#tourId').val(tour._id);
+            $('input[name="name"]').val(tour.name);
+            $('input[name="price"]').val(tour.price);
+            $('input[name="duration"]').val(tour.duration);
+            quill.root.innerHTML = tour.details;
+            $('#existingImage').val(tour.image);
+            $('#imagePreview').attr('src', tour.image);
+          } else {
+            alert('Failed to load tour details.');
+          }
+        },
+        error: function (err) {
+          console.error('Error fetching tour details:', err);
+          alert('Error fetching tour details.');
+        }
+      });
+    }
+
+    $('#deleteButton').on('click', function () {
+      const tourId = $('#tourId').val();
+      if (confirm('Are you sure you want to delete this tour?')) {
+        $.ajax({
+          type: 'DELETE',
+          url: `/api/delete-tour/${tourId}`,
+          success: function (response) {
+            alert(response.message);
+            window.location.href = '/';
+          },
+          error: function (err) {
+            console.error('Error deleting tour:', err);
+            alert('Error deleting tour');
+          }
+        });
+      }
+    });
+  });
+  </script>
+</body>
+</html>
+
+
+
